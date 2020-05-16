@@ -16,6 +16,8 @@ app.use(bodyParser.json());
 
 const router = express.Router();
 
+// Functions
+
 async function IsUserInMYS(userId) {
   let userRankInMYS = await nbx.getRankInGroup(mysGID, userId)
   if (userRankInMYS > 0) {
@@ -115,16 +117,6 @@ async function payoutPDRM(amount) {
   handlePayoutRequest(pdrmGID, payoutUserArray, amount, "yan3321")
 }
 
-
-
-app.get('/', function (req, res) {
-  res.send('Hello World!'); // This will serve your request to '/'.
-});
-
-app.listen(dbPort, function () {
-  console.log('Example app listening on port ' + dbPort.toString() + '!');
-});
-
 async function getDuitRayaLimit() {
   return new Promise((resolve, reject) => {
     const client = MongoClient(url, { useUnifiedTopology: true });
@@ -214,23 +206,24 @@ async function payoutDuitRaya(playerVar) {
   })
 }
 
+// Setting up the express server
+
+app.get('/', function (req, res) {
+  res.send('Hello World!');
+});
+
+app.listen(dbPort, function () {
+  console.log('Example app listening on port ' + dbPort.toString() + '!');
+});
+
 router.use(function (req, res, next) {
-  // do logging
-  console.log('Something is happening.');
-  next(); // make sure we go to the next routes and don't stop here
+  console.log('Router accessed');
+  next();
 });
 
-// test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function (req, res) {
-  res.json({ message: 'hooray! welcome to our api!' });
+  res.json({ message: 'Welcome to the rblxmy-api!' });
 });
-
-router.route('/bears')
-  .post(function (req, res) {
-    // let nama = req.body.thekey;  // set the bears name (comes from the request)
-    let theName = req.body.name
-    res.json({ message: 'Key created with name: ' + theName });
-  });
 
 router.route('/duitraya')
   .get(function (req, res) {
@@ -257,7 +250,7 @@ router.route('/duitraya')
           payoutDuitRaya(payoutUserId)
             .then((remaining) => {
               console.log(remaining)
-              res.json({ status: 'success', remainingLimit: remaining, message: 'UserId ' + payoutUserId + 'has been paid R$5 for duit raya ' })
+              res.json({ status: 'success', remainingLimit: remaining, message: 'UserId ${payoutUserId} has been paid R$5 for duit raya ' })
             })
         }
       } else {
@@ -268,16 +261,14 @@ router.route('/duitraya')
     }
   });
 
-// REGISTER OUR ROUTES -------------------------------
-// all of our routes will be prefixed with /api
 app.use('/api', router);
+
+// Start the application
 
 async function startApp() {
   await nbx.cookieLogin(ROBLOSECURITY)
-  // Do everything else, calling functions and the like.
   let currentUser = await nbx.getCurrentUser()
-  console.log(currentUser.UserName)
-  // payoutUser('yan3321', 5)
+  console.log('Logged in with ${currentUser.UserName}')
 }
 
 startApp()
